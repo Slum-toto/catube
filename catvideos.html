@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catube - Play Video</title>
+    <style>
+        /* ------------------ RESET ------------------ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        a {
+            text-decoration: none;
+            color: #5a5a5a;
+        }
+
+        img {
+            cursor: pointer;
+        }
+
+        /* ------------------ COMMON ------------------ */
+        .flex-div {
+            display: flex;
+            align-items: center;
+        }
+
+        /* ------------------ NAVBAR ------------------ */
+        nav {
+            padding: 10px 2%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            height: 56px;
+        }
+
+        .nav-left .menu-icon {
+            width: 22px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .brand-name {
+            font-size: 21px;
+            font-weight: 600;
+            color: #ff0000;
+        }
+
+        .nav-middle .search-bar {
+            border: 1px solid #ccc;
+            padding: 8px 14px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-middle .search-bar input {
+            width: 400px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .nav-middle .search-bar img {
+            width: 16px;
+        }
+
+        .nav-right img {
+            margin-right: 20px;
+        }
+
+        .user-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* ------------------ SIDEBAR - CLOSED BY DEFAULT ------------------ */
+        .shortcut-links {
+            width: 240px;
+            background: #fff;
+            position: fixed;
+            top: 56px; /* Below navbar */
+            left: -240px; /* Hidden by default */
+            bottom: 0;
+            overflow-y: auto;
+            border-right: 1px solid #e0e0e0;
+            padding: 12px 0;
+            transition: left 0.3s ease;
+            z-index: 99;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        /* When sidebar is open */
+        .shortcut-links.active {
+            left: 0;
+        }
+
+        .shortcut-links a {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            margin-bottom: 4px;
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+
+        .shortcut-links a:hover {
+            background: #f2f2f2;
+        }
+
+        .shortcut-links a img {
+            width: 24px;
+            margin-right: 15px;
+        }
+
+        /* Subscribed list */
+        .subscribed-list {
+            padding: 12px 24px;
+        }
+
+        .subscribed-list h3 {
+            font-size: 14px;
+            margin: 20px 0 10px;
+            color: #666;
+        }
+
+        .subscribed-list a {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px 0;
+        }
+
+        .subscribed-list a img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 98;
+        }
+
+        .shortcut-links.active + .sidebar-overlay {
+            display: block;
+        }
+
+        /* ------------------ MAIN CONTENT ------------------ */
+        .container {
+            background: #f9f9f9;
+            padding: 20px 5% 20px 5%;
+            transition: padding-left 0.3s ease;
+            margin-top: 56px;
+        }
+
+        /* When sidebar is open */
+        .container.sidebar-open {
+            padding-left: 240px;
+        }
+
+        /* ------------------ VIDEO PLAYER PAGE ------------------ */
+        .play-video-container {
+            padding-top: 20px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .left-side {
+            flex-basis: 69%;
+            max-width: 69%;
+        }
+
+        .right-sidebar {
+            flex-basis: 29%;
+            max-width: 29%;
+        }
+
+        /* Video Player */
+        .play-video {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .play-video video {
+            width: 100%;
+            height: auto;
+            max-height: 480px;
+            display: block;
+            background: #000;
+        }
+
+        .video-info {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .video-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #0f0f0f;
+            line-height: 1.4;
+        }
+
+        .video-stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            color: #606060;
+            font-size: 14px;
+        }
+
+        .views {
+            font-weight: 500;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #0f0f0f;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #e5e5e5;
+        }
+
+        .action-btn i {
+            font-size: 16px;
+        }
+
+        .like-dislike {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .like-dislike .action-btn {
+            border-radius: 0;
+            padding: 8px 15px;
+        }
+
+        .like-dislike .action-btn:first-child {
+            border-right: 1px solid #d9d9d9;
+        }
+
+        /* Channel Info */
+        .channel-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .channel-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .channel-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        .channel-details h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #0f0f0f;
+        }
+
+        .channel-details p {
+            font-size: 14px;
+            color: #606060;
+        }
+
+        .subscribe-btn {
+            background: #CC0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            min-width: 100px;
+        }
+
+        .subscribe-btn:hover {
+            background: #ff0000;
+        }
+
+        /* Video Description */
+        .video-description {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .video-description p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #0f0f0f;
+            margin-bottom: 10px;
+        }
+
+        .show-more {
+            color: #606060;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .show-more:hover {
+            color: #0f0f0f;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            padding: 15px;
+        }
+
+        .comments-section h4 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #0f0f0f;
+        }
+
+        .add-comment {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .user-icon-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .add-comment input {
+            flex: 1;
+            padding: 10px 0;
+            border: none;
+            border-bottom: 1px solid #e0e0e0;
+            outline: none;
+            font-size: 14px;
+            color: #0f0f0f;
+        }
+
+        .add-comment input:focus {
+            border-bottom-color: #065fd4;
+        }
+
+        .add-comment input::placeholder {
+            color: #606060;
+        }
+
+        .comment {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .comment h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #0f0f0f;
+        }
+
+        .comment h5 span {
+            font-weight: normal;
+            color: #606060;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .comment p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #0f0f0f;
+            margin-bottom: 8px;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .comment-actions button {
+            background: none;
+            border: none;
+            color: #606060;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .comment-actions button:hover {
+            color: #0f0f0f;
+        }
+
+        .comment-actions button i {
+            font-size: 14px;
+        }
+
+        /* Right Sidebar - Video List */
+        .vid-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .vid-item {
+            display: flex;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .vid-item:hover {
+            background: #f0f0f0;
+        }
+
+        .thumbnail {
+            position: relative;
+            flex-shrink: 0;
+            width: 168px;
+            height: 94px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .duration {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .vid-info {
+            flex: 1;
+        }
+
+        .vid-info h4 {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 5px;
+            color: #0f0f0f;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .vid-info p {
+            font-size: 12px;
+            color: #606060;
+            margin-bottom: 2px;
+        }
+
+        .vid-info p:nth-child(2) {
+            font-size: 13px;
+        }
+
+        /* Divider in sidebar */
+        .shortcut-links hr {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 12px 24px;
+            border: none;
+        }
+
+        /* ------------------ RESPONSIVE ------------------ */
+        @media (max-width: 900px) {
+            .left-side,
+            .right-sidebar {
+                flex-basis: 100%;
+                max-width: 100%;
+            }
+            
+            .row {
+                flex-direction: column;
+            }
+            
+            .nav-middle .search-bar input {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-right img:not(.user-icon) {
+                display: none;
+            }
+            
+            .nav-middle .search-bar input {
+                width: 150px;
+            }
+            
+            .container.sidebar-open {
+                padding-left: 5%;
+            }
+            
+            .shortcut-links {
+                top: 56px;
+                left: -240px;
+                width: 240px;
+            }
+            
+            .shortcut-links.active {
+                left: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px 3%;
+            }
+            
+            .video-stats {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .video-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .channel-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .subscribe-btn {
+                width: 100%;
+            }
+            
+            .thumbnail {
+                width: 120px;
+                height: 70px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .brand-name {
+                font-size: 18px;
+            }
+            
+            .nav-middle .search-bar input {
+                width: 100px;
+            }
+            
+            .thumbnail {
+                width: 100px;
+                height: 60px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            /* Optional: Keep sidebar open on large screens */
+            /* Uncomment if you want sidebar open by default on desktop */
+            /*
+            .shortcut-links {
+                left: 0;
+            }
+            .container {
+                padding-left: 240px;
+            }
+            */
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="flex-div">
+        <div class="nav-left flex-div">
+            <img src="image/menu.png" class="menu-icon" alt="Menu" onclick="toggleSidebar()">
+            <span class="brand-name">Catube</span>
+        </div>
+        <div class="nav-middle flex-div">
+            <div class="search-bar flex-div">
+                <input type="text" placeholder="Search">
+                <img src="image/search.png" alt="Search">
+            </div>
+            <img src="image/mic.png" class="mic-icon" alt="Mic">
+        </div>
+        <div class="nav-right flex-div">
+            <img src="image/watch..png" alt="Watch Later">
+            <img src="image/noification.png" alt="Notifications">
+            <img src="image/Cool Vibes and Peace Sign.png" class="user-icon" alt="User">
+        </div>
+    </nav>
+
+    <!------------------sidebar----------------------->
+    <div class="shortcut-links" id="sidebar">
+        <div class="sidebar-item">
+            <a href="index.html"><img src="image/home.png" alt="Home" class="home">
+                <span>Home</span>
+            </a>
+        </div>
+        <div class="sidebar-item ">
+            <a href="">
+                <img src="image/explore.png" alt="explore">
+                <span>Explore</span>
+            </a>
+        </div>
+        <div class="sidebar-item ">
+            <a href="">
+                <img src="image/subscription.png" alt="Subscriptions">
+                <span>Subscriptions</span>
+            </a>
+        </div>
+        <hr>
+        <div class="sidebar-item ">
+            <a href="">
+                <img src="image/library.png" alt="Library">
+                <span>Library</span>
+            </a>
+        </div>
+        <div class="sidebar-item">
+            <a href="">
+                <img src="image/history.png" alt="History">
+                <span>History</span>
+            </a>
+        </div>
+        <div class="sidebar-item">
+            <a href="">
+                <img src="image/playlist.png" alt="playlist">
+                <span>Playlist</span>
+            </a>
+        </div>
+      
+        <div class="sidebar-item">
+            <a href="">
+                <img src="image/unfold.png" alt="more">
+                <span>More</span>
+            </a>
+        </div>
+        <div class="subscribed-list">
+            <h3>SUBSCRIBED</h3>
+            <a href=""><img src="image/Cool Vibes and Peace Sign.png" alt="martin webdisign"><p>Martin</p></a>
+            <a href=""><img src="image/Cool Vibes and Peace Sign.png" alt="martin webdisign"><p>Joseph</p></a>
+            <a href=""><img src="image/Cool Vibes and Peace Sign.png" alt="martin webdisign"><p>Elisha</p></a>
+            <a href=""><img src="image/Cool Vibes and Peace Sign.png" alt="martin webdisign"><p>Marion</p></a>
+            <a href=""><img src="image/Cool Vibes and Peace Sign.png" alt="martin webdisign"><p>Davies</p></a>
+        </div>
+    </div>
+    
+    <!-- Overlay for mobile -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Main content -->
+    <div class="container play-video-container" id="mainContainer">
+        <div class="row">
+            <div class="left-side">
+                <div class="play-video">
+                    <video controls autoplay>
+                        <source src="image/lern html,css.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-info">
+                        <h3 class="video-title">Learn HTML & CSS in 60 Minutes - Full Beginners Course</h3>
+                        <div class="video-stats">
+                            <span class="views">1,234,567 views • Oct 15, 2023</span>
+                            <div class="video-actions">
+                                <div class="like-dislike">
+                                    <button class="action-btn"><i class="fas fa-thumbs-up"></i> 125K</button>
+                                    <button class="action-btn"><i class="fas fa-thumbs-down"></i> 1.2K</button>
+                                </div>
+                                <button class="action-btn"><i class="fas fa-share"></i> Share</button>
+                                <button class="action-btn"><i class="fas fa-download"></i> Download</button>
+                                <button class="action-btn"><i class="fas fa-save"></i> Save</button>
+                                <button class="action-btn"><i class="fas fa-ellipsis-h"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="channel-info">
+                        <div class="channel-details">
+                            <img src="image/Cool Vibes and Peace Sign.png" class="channel-icon" alt="Channel">
+                            <div>
+                                <h4>WebDev Master</h4>
+                                <p>2.5M subscribers</p>
+                            </div>
+                        </div>
+                        <button class="subscribe-btn" id="subscribeBtn">SUBSCRIBE</button>
+                    </div>
+                    
+                    <div class="video-description">
+                        <p>Learn HTML and CSS in this complete 60-minute course for beginners. In this tutorial, you'll learn all the essentials you need to start building websites. From HTML tags to CSS styling, we cover everything step by step.</p>
+                        <p class="show-more" onclick="toggleDescription()">Show more</p>
+                    </div>
+                    
+                    <div class="comments-section">
+                        <h4>2,847 Comments</h4>
+                        <div class="add-comment">
+                            <img src="image/Cool Vibes and Peace Sign.png" class="user-icon-small" alt="User">
+                            <input type="text" placeholder="Add a comment..." id="commentInput" onfocus="showCommentButtons()">
+                        </div>
+                        
+                        <div class="comment">
+                            <img src="image/Cool Vibes and Peace Sign.png" class="user-icon-small" alt="User">
+                            <div>
+                                <h5>John Doe <span>2 days ago</span></h5>
+                                <p>This tutorial is amazing! I've been trying to learn HTML and CSS for months and this video finally made everything click.</p>
+                                <div class="comment-actions">
+                                    <button><i class="fas fa-thumbs-up"></i> 2.3K</button>
+                                    <button><i class="fas fa-thumbs-down"></i></button>
+                                    <button>REPLY</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="comment">
+                            <img src="image/Cool Vibes and Peace Sign.png" class="user-icon-small" alt="User">
+                            <div>
+                                <h5>Sarah Smith <span>1 week ago</span></h5>
+                                <p>Can you make a part 2 going deeper into CSS Grid? This was incredibly helpful!</p>
+                                <div class="comment-actions">
+                                    <button><i class="fas fa-thumbs-up"></i> 856</button>
+                                    <button><i class="fas fa-thumbs-down"></i></button>
+                                    <button>REPLY</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-sidebar">
+                <div class="vid-list">
+                    <div class="vid-item" onclick="loadVideo('JavaScript Full Course for Beginners')">
+                        <div class="thumbnail">
+                            <img src="image/thumbails.png" alt="Thumbnail">
+                            <span class="duration">15:22</span>
+                        </div>
+                        <div class="vid-info">
+                            <h4>JavaScript Full Course for Beginners</h4>
+                            <p>CodeWithHarry</p>
+                            <p>2.1M views • 1 year ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="vid-item" onclick="loadVideo('Build a Complete Website with HTML CSS')">
+                        <div class="thumbnail">
+                            <img src="image/thumbail 1.png" alt="Thumbnail">
+                            <span class="duration">22:45</span>
+                        </div>
+                        <div class="vid-info">
+                            <h4>Build a Complete Website with HTML CSS</h4>
+                            <p>Web Dev Simplified</p>
+                            <p>845K views • 6 months ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="vid-item" onclick="loadVideo('Responsive Web Design Masterclass')">
+                        <div class="thumbnail">
+                            <img src="image/thumbail2.png" alt="Thumbnail">
+                            <span class="duration">18:30</span>
+                        </div>
+                        <div class="vid-info">
+                            <h4>Responsive Web Design Masterclass</h4>
+                            <p>Traversy Media</p>
+                            <p>1.5M views • 2 years ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="vid-item" onclick="loadVideo('CSS Flexbox Tutorial in 20 Minutes')">
+                        <div class="thumbnail">
+                            <img src="image/thumbail 3.png" alt="Thumbnail">
+                            <span class="duration">24:18</span>
+                        </div>
+                        <div class="vid-info">
+                            <h4>CSS Flexbox Tutorial in 20 Minutes</h4>
+                            <p>Kevin Powell</p>
+                            <p>3.2M views • 3 years ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="vid-item" onclick="loadVideo('Modern JavaScript From The Beginning')">
+                        <div class="thumbnail">
+                            <img src="image/thumbail 4.png" alt="Thumbnail">
+                            <span class="duration">45:10</span>
+                        </div>
+                        <div class="vid-info">
+                            <h4>Modern JavaScript From The Beginning</h4>
+                            <p>FreeCodeCamp</p>
+                            <p>4.7M views • 1 year ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="vid-item" onclick="loadVideo('React JS Crash Course 2023')">
+                        <div class="thumbnail">
+                            <img src="image/thumbail 5.png" alt="Thumbnail">
+                            <span class="duration">32:15</span>
+                        </div>
+                        <div class="vid-info">
+                            <h4>React JS Crash Course 2023</h4>
+                            <p>Programming with Mosh</p>
+                            <p>1.8M views • 8 months ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="vid-item" onclick="loadVideo('Python for Beginners - Full Course')">
+                        <div class="thumbnail">
+                            <img src="image/thumbail 6.png" alt="Thumbnail">
+                            <span class="duration">55:30</span>
+                        </div>
+                        <div class="vid-info">
+                            <h4>Python for Beginners - Full Course</h4>
+                            <p>freeCodeCamp.org</p>
+                            <p>5.3M views • 2 years ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="vid-item" onclick="loadVideo('UI/UX Design Tutorial for Beginners')">
+                        <div class="thumbnail">
+                            <img src="image/thumbail 7.png" alt="Thumbnail">
+                            <span class="duration">28:45</span>
+                        </div>
+                        <div class="vid-info">
+                            <h4>UI/UX Design Tutorial for Beginners</h4>
+                            <p>DesignCourse</p>
+                            <p>950K views • 1 year ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Toggle sidebar function
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const container = document.getElementById('mainContainer');
+            
+            sidebar.classList.toggle('active');
+            container.classList.toggle('sidebar-open');
+            
+            // Close sidebar when clicking on mobile overlay
+            const overlay = document.querySelector('.sidebar-overlay');
+            if (sidebar.classList.contains('active')) {
+                overlay.style.display = 'block';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.querySelector('.sidebar-overlay').addEventListener('click', function() {
+            toggleSidebar();
+        });
+        
+        // Close sidebar when clicking on a sidebar link
+        document.querySelectorAll('.shortcut-links a').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleSidebar();
+                }
+            });
+        });
+        
+        // Subscribe button functionality
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        subscribeBtn.addEventListener('click', function() {
+            if (this.textContent === 'SUBSCRIBE') {
+                this.textContent = 'SUBSCRIBED';
+                this.style.background = '#606060';
+                alert('Subscribed to WebDev Master!');
+            } else {
+                this.textContent = 'SUBSCRIBE';
+                this.style.background = '#CC0000';
+            }
+        });
+        
+        // Like button functionality
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.innerHTML.includes('fa-thumbs-up')) {
+                    const likeCount = this.querySelector('span') || this;
+                    let currentText = likeCount.textContent;
+                    let currentLikes = parseInt(currentText.replace(/\D/g, ''));
+                    if (!isNaN(currentLikes)) {
+                        currentLikes++;
+                        if (currentLikes >= 1000) {
+                            likeCount.textContent = (currentLikes / 1000).toFixed(1) + 'K';
+                        } else {
+                            likeCount.textContent = currentLikes;
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Video item click
+        function loadVideo(title) {
+            alert(`Loading: ${title}`);
+            // In a real app, you would load the video here
+        }
+        
+        // Show more description
+        function toggleDescription() {
+            const showMore = document.querySelector('.show-more');
+            const description = document.querySelector('.video-description p');
+            
+            if (showMore.textContent === 'Show more') {
+                showMore.textContent = 'Show less';
+                description.style.height = 'auto';
+            } else {
+                showMore.textContent = 'Show more';
+                description.style.height = '60px'; // Adjust as needed
+                description.style.overflow = 'hidden';
+            }
+        }
+        
+        // Comment input focus
+        function showCommentButtons() {
+            // You can add comment buttons here if needed
+            console.log('Comment input focused');
+        }
+        
+        // Add comment on enter key
+        document.getElementById('commentInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                alert('Comment added: ' + this.value);
+                this.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
